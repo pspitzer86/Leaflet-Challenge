@@ -26,7 +26,7 @@ function createFeatures(earthquakeData) {
             color: earthquakeData[i].geometry.coordinates[2],
             // Setting our circle's radius equal to the output of our markerSize function
             // This will make our marker's size proportionate to its population
-            radius: earthquakeData[i].properties.mag * 6000
+            radius: earthquakeData[i].properties.mag * 10000
             }).bindPopup("<h3>" + earthquakeData[i].properties.place + "</h3><hr><p>" + new Date(earthquakeData[i].properties.time) + "</p>"));
     
         }
