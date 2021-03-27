@@ -14,31 +14,29 @@ d3.json(url, function(data) {
   
 function createFeatures(earthquakeData) {
 
-    // Define a function we want to run once for each feature in the features array
-    // Give each feature a popup describing the place and time of the earthquake
-    function onEachFeature(feature) {
-        L.circle(feature.geometry.coordinates, {
+    epicenters = [];
+
+    for (var i = 0; i < earthquakeData.length; i++) {
+
+        var location = [earthquakeData[i].geometry.coordinates[1], earthquakeData[i].geometry.coordinates[0]];
+
+        epicenters.push(
+            L.circle(location, {
             fillOpacity: 0.75,
-            color: "white",
-            fillColor: color,
-            // Adjust radius
-            radius: feature.properties.mag
-          }).bindPopup("<h1>" + feature.properties.time + "</h1> <hr> <h3>Points: " + feature.geometry.coordinates + "</h3>").addTo(myMap);
-        
-    //   layer.bindPopup("<h3>" + feature.properties.place +
-    //     "</h3><hr><p>" + new Date(feature.properties.time) + "</p>");
-    }
-  
-    // Create a GeoJSON layer containing the features array on the earthquakeData object
-    // Run the onEachFeature function once for each piece of data in the array
-    var earthquakes = L.geoJSON(earthquakeData, {
-      onEachFeature: onEachFeature
-    });
-  
-    // Sending our earthquakes layer to the createMap function
+            color: earthquakeData[i].geometry.coordinates[2],
+            // Setting our circle's radius equal to the output of our markerSize function
+            // This will make our marker's size proportionate to its population
+            radius: earthquakeData[i].properties.mag * 6000
+            }).bindPopup("<h3>" + earthquakeData[i].properties.place + "</h3><hr><p>" + new Date(earthquakeData[i].properties.time) + "</p>"));
+    
+        }
+      
+    var earthquakes = L.layerGroup(epicenters);
+
     createMap(earthquakes);
-  }
-  
+
+    }
+
   function createMap(earthquakes) {
   
     // Define streetmap and darkmap layers
@@ -85,4 +83,3 @@ function createFeatures(earthquakeData) {
       collapsed: false
     }).addTo(myMap);
   }
-  
