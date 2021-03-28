@@ -107,6 +107,7 @@ function createFeatures(earthquakeData) {
       for (var i = 0; i < depthLimits.length; i++) {
         div.innerHTML += '<i style="background:' + setColor(depthLimits[i] + 1) + '"></i> ' + depthLimits[i] + (depthLimits[i + 1] ? '&ndash;' + depthLimits[i + 1] + '<br>' : '+');
         }
+        console.log(div)
         return div;
 
       }
