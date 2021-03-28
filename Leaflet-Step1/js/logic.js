@@ -8,11 +8,31 @@ d3.json(url, function(data) {
 
     console.log(data)
 
+    var minDepth = 0
+    var maxDepth = 0
+
+    for (var i = 0; i < data.features.length; i++) {
+
+        if (i == 0) {
+            minDepth = data.features[i].geometry.coordinates[2];
+            maxDepth = data.features[i].geometry.coordinates[2];
+        }
+        else {
+            if (data.features[i].geometry.coordinates[2] < minDepth) {
+                minDepth = data.features[i].geometry.coordinates[2];
+            }
+            else if (data.features[i].geometry.coordinates[2] > maxDepth) {
+                maxDepth = data.features[i].geometry.coordinates[2];
+            }
+                
+            }
+        }
+
     // Once we get a response, send the data.features object to the createFeatures function
 
     createFeatures(data.features);
 
-})
+    })
   
 function createFeatures(earthquakeData) {
 
