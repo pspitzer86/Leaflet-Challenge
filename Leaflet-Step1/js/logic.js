@@ -1,38 +1,29 @@
 // Store our url inside variable
 
-var url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson";
+var url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson";
 
 // Perform a GET request to the query URL
 
 d3.json(url, function(data) {
 
-    console.log(data)
-
-    var minDepth = 0
-    var maxDepth = 0
-
-    for (var i = 0; i < data.features.length; i++) {
-
-        if (i == 0) {
-            minDepth = data.features[i].geometry.coordinates[2];
-            maxDepth = data.features[i].geometry.coordinates[2];
-        }
-        else {
-            if (data.features[i].geometry.coordinates[2] < minDepth) {
-                minDepth = data.features[i].geometry.coordinates[2];
-            }
-            else if (data.features[i].geometry.coordinates[2] > maxDepth) {
-                maxDepth = data.features[i].geometry.coordinates[2];
-            }
-                
-            }
-        }
+    console.log(data.features.length)
 
     // Once we get a response, send the data.features object to the createFeatures function
 
     createFeatures(data.features);
 
     })
+
+function setColor(depthData) {
+
+  var depthColor = [{interval: 10, color: "green"}, {interval: 30, color: "lightgreen"}, {interval: 50, color: "yellow"}, {interval: 70, color: "orange"}, {interval: 90, color: "red"}, {interval: 1000, color: "maroon"}];
+
+  for (var i = 0; i <= depthColor.length; i++) {
+    if (depthData <= depthColor[i].interval) {
+      return depthColor[i].color;
+    }
+  }
+}
   
 function createFeatures(earthquakeData) {
 
@@ -45,11 +36,13 @@ function createFeatures(earthquakeData) {
         epicenters.push(
             L.circle(location, {
             fillOpacity: 0.75,
-            color: earthquakeData[i].geometry.coordinates[2],
+            color: "black",
+            weight: 1,
+            fillColor: setColor(earthquakeData[i].geometry.coordinates[2]),
             // Setting our circle's radius equal to the output of our markerSize function
             // This will make our marker's size proportionate to its population
             radius: earthquakeData[i].properties.mag * 10000
-            }).bindPopup("<h3>" + earthquakeData[i].properties.place + "</h3><hr><p>" + new Date(earthquakeData[i].properties.time) + "</p>"));
+            }).bindPopup("<h3>" + earthquakeData[i].properties.place + "</h3><hr><p><strong>Magnitude: </strong>" + earthquakeData[i].properties.mag + "<br><strong>Depth: </strong>" + earthquakeData[i].geometry.coordinates[2] + " km <br><br>" + new Date(earthquakeData[i].properties.time) + "</p>"));
     
         }
       
