@@ -1,6 +1,6 @@
 // Store our url inside variable
 
-var url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson";
+var url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson";
 
 // Perform a GET request to the query URL
 
@@ -103,9 +103,10 @@ function createFeatures(earthquakeData) {
     legend.onAdd = function() {
       var div = L.DomUtil.create("div", "info legend");
       depthLimits = [-10,10,30,50,70,90];
+      div.innerHTML = "<h3>Epicenter Depth</h3>";
 
       for (var i = 0; i < depthLimits.length; i++) {
-        div.innerHTML += '<i style="background:' + setColor(depthLimits[i] + 1) + '"></i> ' + depthLimits[i] + (depthLimits[i + 1] ? '&ndash;' + depthLimits[i + 1] + '<br>' : '+');
+        div.innerHTML += '<i style="background:' + setColor(depthLimits[i] + 1) + '"></i> ' + depthLimits[i] + (depthLimits[i + 1] ? ' km &ndash; ' + depthLimits[i + 1] + ' km <br>' : '+ km');
         }
         console.log(div)
         return div;
