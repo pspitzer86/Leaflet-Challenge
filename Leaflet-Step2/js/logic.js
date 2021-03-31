@@ -1,86 +1,89 @@
-// Store our url inside variable
+// define geoJSON dataset
+var earthquakeJSON = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson";
 
-var url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson";
+// perform a GET request to the query URL
+d3.json(earthquakeJSON, function(data) {
+    console.log(data);
 
-// Perform a GET request to the query URL
-
-d3.json(url, function(data) {
-
-    console.log(data.features.length)
-
-    // Once we get a response, send the data.features object to the createFeatures function
-
+    // once we get a response, send the data.features object to the createFeatures function
     createFeatures(data.features);
+});
 
-    })
 
-// Create a dictionary list with key-value pairs of the top of the intervals and the color associated with them.
-// Loop through thr depths and set each depth with the correct color.
+// function to set color to indicate epicenter depth
+function setColor(depth) {
+ 
+    // create color object
+    var depthColor = [{interval: 10, color: "green"}, {interval: 30, color: "lightgreen"}, {interval: 50, color: "yellow"}, {interval: 70, color: "orange"}, {interval: 90, color: "red"}, {interval: 1000, color: "maroon"}];
 
-function setColor(depthData) {
-
-  var depthColor = [{interval: 10, color: "green"}, {interval: 30, color: "lightgreen"}, {interval: 50, color: "yellow"}, {interval: 70, color: "orange"}, {interval: 90, color: "red"}, {interval: 1000, color: "maroon"}];
-
-  for (var i = 0; i <= depthColor.length; i++) {
-    if (depthData <= depthColor[i].interval) {
-      return depthColor[i].color;
-    }
-  }
+    // loop through color object and return
+    // first match
+    for (var i = 0; i < depthColor.length; i++) {
+        if (depth <= depthColor[i].interval) {
+            return(depthColor[i].color);
+        }
+    } 
 }
 
-// Create the earthquake circles at their respective coordinates and set the size of each circle to their respective magnitudes into an empty list.
-  
+
+// function to define our markers features
 function createFeatures(earthquakeData) {
 
-    epicenters = [];
+    eqMarkers = [];
 
+    // loop through the earthquake locations
     for (var i = 0; i < earthquakeData.length; i++) {
 
-        var location = [earthquakeData[i].geometry.coordinates[1], earthquakeData[i].geometry.coordinates[0]];
+    // set location to coordinates provided
+		var location = [earthquakeData[i].geometry.coordinates[1], earthquakeData[i].geometry.coordinates[0]];
 
-        epicenters.push(
-            L.circle(location, {
-            fillOpacity: 0.75,
-            color: "black",
-            weight: 1,
-            fillColor: setColor(earthquakeData[i].geometry.coordinates[2]),
-
-            // Setting our circle's radius equal to the magnitude.
-            // This will make our marker's size proportionate to the earthquakes magnitude.
-
-            radius: earthquakeData[i].properties.mag * 10000
-            }).bindPopup("<h3>" + earthquakeData[i].properties.place + "</h3><hr><p><strong>Magnitude: </strong>" + earthquakeData[i].properties.mag + "<br><strong>Depth: </strong>" + earthquakeData[i].geometry.coordinates[2] + " km <br><br>" + new Date(earthquakeData[i].properties.time) + "</p>"));
-    
-        }
-
-    // Create a layer for the earthquake curcles and run them through the function that will create the maps.
-      
-    var earthquakes = L.layerGroup(epicenters);
-
-    createMap(earthquakes);
-
+    // push a circle marker into our list, calling setColor using
+    // the depth coordinate and using the magnitude for
+    // the circle radius.  add a popup to the markers
+		eqMarkers.push(L.circle(location, {
+        weight: 1,
+        color: "black",
+        fillColor: setColor(earthquakeData[i].geometry.coordinates[2]),
+        fillOpacity: 0.8,
+        radius: earthquakeData[i].properties.mag * 10000
+    }).bindPopup("<h3>" + earthquakeData[i].properties.place +
+      			"</h3><hr><p><strong>Magnitude:</strong> " + earthquakeData[i].properties.mag + "<br><strong>Depth:</strong> "
+            + earthquakeData[i].geometry.coordinates[2] + " km<br><br>" + new Date(earthquakeData[i].properties.time) + "</p>"));
     }
 
-  //  Creation of the map using different map layers as the basemap and the earthquake layer created prior
+    var earthquakes = L.layerGroup(eqMarkers);
 
-  function createMap(earthquakes) {
-  
-    // Define streetmap and darkmap layers
+    // sending our earthquakes layer to the createMap function
+    createMap(earthquakes);
+}
 
-    var satellitemap = L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
-      attribution: "© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>",
-      tileSize: 512,
-      maxZoom: 18,
-      zoomOffset: -1,
-      id: "mapbox/satellite-v9",
-      accessToken: API_KEY
+
+
+// function to build our map
+function createMap(earthquakes) {
+
+    // define streetmap and darkmap layers
+    var satellitemap = L.tileLayer("https://api.mapbox.com/styles/v1/mapbox/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
+        attribution: "© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>",
+        tileSize: 512,
+        maxZoom: 18,
+        zoomOffset: -1,
+        id: "satellite-v9",
+        accessToken: API_KEY
+    });
+
+    var grayscalemap = L.tileLayer("https://api.mapbox.com/styles/v1/mapbox/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
+        attribution: "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
+        maxZoom: 18,
+        id: "light-v10",
+        accessToken: API_KEY
     });
   
-    var grayscalemap = L.tileLayer("https://api.mapbox.com/styles/v1/mapbox/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
-      attribution: "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
-      maxZoom: 18,
-      id: "light-v10",
-      accessToken: API_KEY
+    var darkmap = L.tileLayer("https://api.mapbox.com/styles/v1/mapbox/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
+        attribution: "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
+        maxZoom: 18,
+        id: "dark-v10",
+        accessToken: API_KEY
     });
 
     var outdoormap = L.tileLayer("https://api.mapbox.com/styles/v1/mapbox/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
@@ -88,58 +91,50 @@ function createFeatures(earthquakeData) {
         maxZoom: 18,
         id: "outdoors-v11",
         accessToken: API_KEY
-      });
-  
-    // Define a baseMaps object to hold our base layers
-
-    var baseMaps = {
-      "Satellite Map": satellitemap,
-      "Grayscale Map": grayscalemap,
-      "Outdoor Map": outdoormap
-    };
-  
-    // Create overlay object to hold our overlay layer
-
-    var overlayMaps = {
-      Earthquakes: earthquakes
-    };
-  
-    // Create our map, giving it the streetmap and earthquakes layers to display on load
-
-    var myMap = L.map("mapid", {
-      center: [
-        37.09, -95.71
-      ],
-      zoom: 5,
-      layers: [satellitemap, earthquakes]
     });
-  
+
+    // define a baseMaps object to hold our base layers
+    var baseMaps = {
+        "Satellite": satellitemap,
+        "Grayscale": grayscalemap,
+        "Dark": darkmap,
+        "Outdoors": outdoormap
+     };
+
+    // create overlay object to hold our overlay layer
+    var overlayMaps = {
+        "Earthquakes": earthquakes
+    };
+
+    // create our map, giving it the streetmap and earthquakes layers to display on load
+    var myMap = L.map("mapid", {
+        center: [
+            37.09, -95.71
+        ],
+        zoom: 5,
+        layers: [satellitemap, earthquakes]
+    });
+
     // Create a layer control
     // Pass in our baseMaps and overlayMaps
     // Add the layer control to the map
-
     L.control.layers(baseMaps, overlayMaps, {
-      collapsed: false
+        collapsed: false
     }).addTo(myMap);
 
-    // Set up the legend
 
+    // set up the legend
     var legend = L.control({ position: "bottomright" });
     legend.onAdd = function() {
       var div = L.DomUtil.create("div", "info legend");
-      depthLimits = [-10,10,30,50,70,90];
-      div.innerHTML = "<h3>Epicenter Depth</h3>";
-
+      var depthLimits = [-10, 10, 30, 50, 70, 90];
+      div.innerHTML = '<h3>Epicenter Depth</h3>';
       for (var i = 0; i < depthLimits.length; i++) {
         div.innerHTML += '<i style="background:' + setColor(depthLimits[i] + 1) + '"></i> ' + depthLimits[i] + (depthLimits[i + 1] ? ' km &ndash; ' + depthLimits[i + 1] + ' km <br>' : '+ km');
         }
-        console.log(div)
+        console.log(div);
         return div;
-
       }
-
-  // Adding legend to the map
-  
-  legend.addTo(myMap);
-
-  }
+    // adding legend to the map
+    legend.addTo(myMap);
+}
