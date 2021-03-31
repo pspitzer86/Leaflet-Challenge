@@ -45,7 +45,7 @@ function createFeatures(earthquakeData) {
         color: "black",
         fillColor: setColor(earthquakeData[i].geometry.coordinates[2]),
         fillOpacity: 0.8,
-        radius: earthquakeData[i].properties.mag * 10000
+        radius: earthquakeData[i].properties.mag * 40000
     }).bindPopup("<h3>" + earthquakeData[i].properties.place +
       			"</h3><hr><p><strong>Magnitude:</strong> " + earthquakeData[i].properties.mag + "<br><strong>Depth:</strong> "
             + earthquakeData[i].geometry.coordinates[2] + " km<br><br>" + new Date(earthquakeData[i].properties.time) + "</p>"));
@@ -56,8 +56,6 @@ function createFeatures(earthquakeData) {
     // sending our earthquakes layer to the createMap function
     createMap(earthquakes);
 }
-
-
 
 // function to build our map
 function createMap(earthquakes) {
@@ -93,6 +91,27 @@ function createMap(earthquakes) {
         accessToken: API_KEY
     });
 
+    // Use this link to get the geojson data.
+    var link = "https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_boundaries.json";
+
+    // Our style object
+    var mapStyle = {
+      color: "white",
+      fillColor: "pink",
+      fillOpacity: 0.5,
+      weight: 1.5
+    };
+
+  // Grabbing our GeoJSON data..
+  var plates = d3.json(link, function(data) {
+    // Creating a geoJSON layer with the retrieved data
+    L.geoJson(data, {
+      // Passing in our style object
+      style: mapStyle
+    }).addTo(myMap);
+  });
+
+
     // define a baseMaps object to hold our base layers
     var baseMaps = {
         "Satellite": satellitemap,
@@ -103,15 +122,16 @@ function createMap(earthquakes) {
 
     // create overlay object to hold our overlay layer
     var overlayMaps = {
-        "Earthquakes": earthquakes
+        "Earthquakes": earthquakes,
+        "Tectonic Plates": plates
     };
 
     // create our map, giving it the streetmap and earthquakes layers to display on load
     var myMap = L.map("mapid", {
         center: [
-            37.09, -95.71
+            17.09, -45.71
         ],
-        zoom: 5,
+        zoom: 3,
         layers: [satellitemap, earthquakes]
     });
 
