@@ -1,16 +1,20 @@
 // define geoJSON dataset
+
 var earthquakeJSON = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson";
 
 // perform a GET request to the query URL
+
 d3.json(earthquakeJSON, function(data) {
     console.log(data);
 
     // once we get a response, send the data.features object to the createMap function
+
     createMap(data.features);
 });
 
 
 // function to set color to indicate epicenter depth
+
 function setColor(depth) {
  
     // create color object
@@ -18,6 +22,7 @@ function setColor(depth) {
 
     // loop through color object and return
     // first match
+
     for (var i = 0; i < depthColor.length; i++) {
         if (depth <= depthColor[i].interval) {
             return(depthColor[i].color);
@@ -27,9 +32,11 @@ function setColor(depth) {
 
 
 // function to define our markers features
+
 function createMap(earthquakeData) {
 
     // create our map, giving it the streetmap and earthquakes layers to display on load
+
     var myMap = L.map("mapid", {
         center: [
             37.09, -95.71
@@ -38,6 +45,7 @@ function createMap(earthquakeData) {
     });
 
     // define basemap
+
     L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
         attribution: "© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>",
         tileSize: 512,
@@ -48,17 +56,21 @@ function createMap(earthquakeData) {
     }).addTo(myMap);
 
     // initialize earthquake marker array
+
     eqMarkers = [];
 
     // loop through the earthquake locations
+
     for (var i = 0; i < earthquakeData.length; i++) {
 
         // set location to coordinates provided
+
         var location = [earthquakeData[i].geometry.coordinates[1], earthquakeData[i].geometry.coordinates[0]];
 
         // push a circle marker into our list, calling setColor using
         // the depth coordinate and using the magnitude for
         // the circle radius.  add a popup to the markers
+
         eqMarkers.push(L.circle(location, {
             weight: 1,
             color: "black",
@@ -73,6 +85,7 @@ function createMap(earthquakeData) {
 
 
     // set up the legend
+
     var legend = L.control({ position: "bottomright" });
     legend.onAdd = function() {
         var div = L.DomUtil.create("div", "info legend");
@@ -84,5 +97,6 @@ function createMap(earthquakeData) {
         return div;
     }
     // adding legend to the map
+
     legend.addTo(myMap);
 }

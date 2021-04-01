@@ -19,8 +19,8 @@ d3.json(earthquakeJSON, function(eData) {
 
       // once we get a response, send the data.features object
       // and plate boundaries object to the createFeatures function
-      
-      createFeatures(eData.features, pData);
+
+      createMap(eData.features, pData);
 
     });
 
